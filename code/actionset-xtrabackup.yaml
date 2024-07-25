@@ -1,0 +1,92 @@
+apiVersion: dataprotection.kubeblocks.io/v1alpha1
+kind: ActionSet
+metadata:
+  name: mysql-xtrabackup
+spec:
+  backupType: Full
+  env:
+    - name: DATA_DIR
+      value: "/var/lib/mysql/data"
+    - name: MYSQL_DIR
+      value: /var/lib/mysql
+    - name: IMAGE_TAG
+      value: 8.0.32
+    - name: BACKUP_FOR_STANDBY
+      value: "false"
+  backup:
+    preBackup: []
+    postBackup: []
+    backupData:
+      image: docker.io/perconalab/percona-xtrabackup:8.0.32
+      runOnTargetPodNode: true
+      command:
+        - bash
+        - -c
+        - |
+          set -e
+          set -o pipefail
+          export PATH="$PATH:$DP_DATASAFED_BIN_PATH"
+          export DATASAFED_BACKEND_BASE_PATH="$DP_BACKUP_BASE_PATH"
+          
+          # if the script exits with a non-zero exit code, touch a file to indicate that the backup failed,
+          # the sync progress container will check this file and exit if it exists
+          function handle_exit() {
+          exit_code=$?
+          if [ $exit_code -ne 0 ]; then
+          echo "failed with exit code $exit_code"
+          touch "${DP_BACKUP_INFO_FILE}.exit"
+          exit 1
+          fi
+          }
+          trap handle_exit EXIT
+          
+          lock_per_table_ddl=""
+          if [ "${IMAGE_TAG}" == "2.4" ]; then
+          lock_per_table_ddl="--lock-ddl-per-table"
+          fi
+          xtrabackup --backup --safe-slave-backup --slave-info ${lock_per_table_ddl} --stream=xbstream \
+          --host=${DP_DB_HOST} --user=${DP_DB_USER} --password=${DP_DB_PASSWORD} --datadir=${DATA_DIR} | datasafed push -z zstd-fastest - "/${DP_BACKUP_NAME}.xbstream.zst"
+          TOTAL_SIZE=$(datasafed stat / | grep TotalSize | awk '{print $2}')
+          echo "{\"totalSize\":\"$TOTAL_SIZE\"}" >"${DP_BACKUP_INFO_FILE}"
+      syncProgress:
+        enabled: true
+        intervalSeconds: 5
+  restore:
+    prepareData:
+      image: docker.io/perconalab/percona-xtrabackup:8.0.32
+      command:
+        - bash
+        - -c
+        - |
+          #!/bin/bash
+          set -e
+          set -o pipefail
+          export PATH="$PATH:$DP_DATASAFED_BIN_PATH"
+          export DATASAFED_BACKEND_BASE_PATH="$DP_BACKUP_BASE_PATH"
+          mkdir -p ${DATA_DIR}
+          TMP_DIR=${MYSQL_DIR}/temp
+          mkdir -p ${TMP_DIR} && cd ${TMP_DIR}
+          
+          xbstreamFile="${DP_BACKUP_NAME}.xbstream.zst"
+          if [ "$(datasafed list ${xbstreamFile})" == "${xbstreamFile}" ]; then
+            datasafed pull -d zstd-fastest "${xbstreamFile}" - | xbstream -x
+          else
+            datasafed pull "${DP_BACKUP_NAME}.xbstream" - | xbstream -x
+          fi
+          xtrabackup --decompress --remove-original --target-dir=${TMP_DIR}
+          xtrabackup --prepare --target-dir=${TMP_DIR}
+          xtrabackup --move-back --target-dir=${TMP_DIR} --datadir=${DATA_DIR}/
+          
+          touch ${DATA_DIR}/.xtrabackup_restore
+          if [ "${BACKUP_FOR_STANDBY}" != "true" ]; then
+             touch ${DATA_DIR}/.restore_new_cluster
+          fi
+          rm -rf ${TMP_DIR}
+          chmod -R 0777 ${DATA_DIR}
+    postReady:
+      - exec:
+          command:
+            - sh
+            - -c
+            - |
+              rm -rf {{ .Values.dataMountPath }}/data/.restore_new_cluster
