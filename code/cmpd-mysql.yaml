@@ -1,12 +1,18 @@
 apiVersion: apps.kubeblocks.io/v1alpha1
 kind: ComponentDefinition
 metadata:
-  name: mysql
+  name: my-mysql
 spec:
   serviceVersion: 8.0.33
   provider: kubeblocks
   description: mysql component definition for Kubernetes
   serviceKind: mysql
+
+  configs:
+    - name: mysql-config
+      volumeName: mysql-config
+      templateRef: mysql-config
+      constraintRef: mysql-config-constraints
 
   services:
     - name: mysql
@@ -53,6 +59,9 @@ spec:
         volumeMounts:
           - name: data
             mountPath: /var/lib/mysql
+          - name: mysql-config
+            mountPath: /etc/mysql/conf.d
+
         livenessProbe:
           exec:
             command: ["mysqladmin", "ping"]

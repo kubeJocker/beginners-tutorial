@@ -7,7 +7,7 @@ spec:
   componentSpecs:
     - name: server
       replicas: 1
-      componentDef: mysql
+      componentDef: my-mysql
       resources:
         limits:
           cpu: 500m
