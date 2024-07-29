@@ -1,0 +1,13 @@
+apiVersion: apps.kubeblocks.io/v1alpha1
+kind: Cluster
+metadata:
+  name: {{ include "mysql.clusterName" . }}
+  labels: {{ include "mysql.clusterLabels" . | nindent 4 }}
+spec:
+  terminationPolicy: {{ .Values.extra.terminationPolicy }}
+  componentSpecs:
+    - name: server
+      replicas: {{ .Values.replicas }}
+      componentDef: my-mysql
+      {{- include "mysql.componentResources" . | indent 6 }}
+      {{- include "mysql.componentStorages" . | indent 6 }}

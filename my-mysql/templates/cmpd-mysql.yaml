@@ -11,8 +11,8 @@ spec:
   configs:
     - name: mysql-config
       volumeName: mysql-config
-      templateRef: mysql-config
-      constraintRef: mysql-config-constraints
+      templateRef: my-mysql-config
+      constraintRef: my-mysql-config-constraints
 
   services:
     - name: mysql
