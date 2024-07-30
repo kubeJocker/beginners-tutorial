@@ -13,6 +13,9 @@ spec:
       volumeName: mysql-config
       templateRef: my-mysql-config
       constraintRef: my-mysql-config-constraints
+      namespace: {{ .Release.Namespace }}
+      reRenderResourceTypes:
+        - vscale
 
   services:
     - name: mysql
