@@ -11,3 +11,14 @@ spec:
       componentDef: my-mysql
       {{- include "mysql.componentResources" . | indent 6 }}
       {{- include "mysql.componentStorages" . | indent 6 }}
+      {{- if .Values.clusterServiceSelector.orchestrator.cluster }}
+      serviceRefs:
+        - name: orchestrator
+          namespace: {{ .Values.clusterServiceSelector.orchestrator.namespace | default .Release.Namespace }}
+          clusterServiceSelector:
+            cluster: {{ .Values.clusterServiceSelector.orchestrator.cluster }}
+            service:
+              component: orchestrator
+              service: orchestrator
+              port: {{ .Values.clusterServiceSelector.orchestrator.portName | default "http" }}
+      {{- end }}

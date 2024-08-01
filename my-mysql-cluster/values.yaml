@@ -39,3 +39,10 @@ mysql:
 
 extra:
   terminationPolicy: Delete
+
+
+clusterServiceSelector:
+  orchestrator:
+    cluster: ""
+    portName: "http"
+    namespace: ""

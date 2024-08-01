@@ -7,3 +7,7 @@ metadata:
 data:
   init-mysql-instance.sh: |-
     {{- .Files.Get "scripts/init-mysql-instance.sh" | nindent 4 }}
+  mysql-orchestrator-register.sh: |-
+    {{- .Files.Get "scripts/mysql-orchestrator-register.sh" | nindent 4 }}
+  cluster-info.sql: |-
+    {{- .Files.Get "scripts/cluster-info.sql" | nindent 4 }}
