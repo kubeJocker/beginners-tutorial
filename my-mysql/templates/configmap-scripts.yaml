@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: my-mysql-scripts
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+data:
+  init-mysql-instance.sh: |-
+    {{- .Files.Get "scripts/init-mysql-instance.sh" | nindent 4 }}

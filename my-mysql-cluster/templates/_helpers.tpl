@@ -17,10 +17,18 @@ We truncate at 15 chars because KubeBlocks will concatenate the names of other r
 Define cluster labels
 */}}
 {{- define "mysql.clusterLabels" -}}
-helm.sh/chart: {{ include "kblib.chart" . }}
+helm.sh/chart: {{ include "mysql.chart" . }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
-app.kubernetes.io/instance: {{ include "kblib.clusterName" . }}
+app.kubernetes.io/instance: {{ include "mysql.clusterName" . }}
 {{- end }}
+
+{{/*
+Create chart name and version as used by the chart label.
+*/}}
+{{- define "mysql.chart" -}}
+{{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
+{{- end }}
+
 
 {{/*
 Define component resources, including cpu, memory
@@ -48,7 +56,7 @@ resources:
 {{/*
 Define component storages, including volumeClaimTemplates
 */}}
-{{- define "kblib.componentStorages" }}
+{{- define "mysql.componentStorages" }}
 volumeClaimTemplates:
   - name: data # ref clusterDefinition components.containers.volumeMounts.name
     spec:

@@ -67,11 +67,6 @@ read_rnd_buffer_size={{ $read_rnd_buffer_size }}
 join_buffer_size={{ $join_buffer_size }}
 sort_buffer_size={{ $sort_buffer_size }}
 
-#default_authentication_plugin=mysql_native_password    #From mysql8.0.23 is deprecated.
-authentication_policy=mysql_native_password,
-back_log=5285
-host_cache_size=867
-connect_timeout=10
 
 # character-sets-dir=/usr/share/mysql-8.0/charsets
 
@@ -82,26 +77,6 @@ mysqlx=0
 datadir={{ $data_root }}/data
 plugin_dir=/usr/lib64/mysql/plugin/
 
-{{- $log_root := printf "%s/log" $data_root }}
-log_error={{ $log_root }}/mysqld-error.log
-slow_query_log_file={{ $log_root }}/mysqld-slowquery.log
-general_log_file={{ $log_root }}/mysqld.log
-
-{{ block "logsBlock" . }}
-log_statements_unsafe_for_binlog=OFF
-log_error_verbosity=2
-log_output=FILE
-{{- $log_root := "/var/lib/mysql/log" }}
-{{- if hasKey $.component "enabledLogs" }}
-{{- if mustHas "slow" $.component.enabledLogs }}
-slow_query_log=ON
-long_query_time=5
-{{- end }}
-{{- if mustHas "general" $.component.enabledLogs }}
-general_log=ON
-{{- end }}
-{{- end }}
-{{ end }}
 
 #innodb
 innodb_doublewrite_batch_size=16
@@ -152,8 +127,6 @@ binlog_format=MIXED
 binlog_row_image=FULL
 # Aliyun AWS binlog_order_commits=ON
 binlog_order_commits=ON
-log-bin={{ $data_root }}/binlog/mysql-bin
-log_bin_index={{ $data_root }}/binlog/mysql-bin.index
 binlog_expire_logs_seconds=604800
 max_binlog_size=134217728
 log_replica_updates=1
@@ -165,28 +138,7 @@ log_replica_updates=1
 # From mysql8.0.23 is deprecated.
 relay_log_recovery=ON
 relay_log=relay-bin
-relay_log_index=relay-bin.index
-
-# audit log
-loose_audit_log_handler=FILE # FILE, SYSLOG
-loose_audit_log_file={{ $data_root }}/auditlog/audit.log
-loose_audit_log_buffer_size=1Mb
-loose_audit_log_policy=QUERIES # ALL, LOGINS, QUERIES, NONE
-loose_audit_log_strategy=ASYNCHRONOUS
-loose_audit_log_rotate_on_size=10485760
-loose_audit_log_rotations=5
-## mysql> select host, user from mysql.user;
-## +-----------+------------------+
-## | host      | user             |
-## +-----------+------------------+
-## | %         | root             |
-## | %         | u1               |
-## | localhost | mysql.infoschema |
-## | localhost | mysql.session    |
-## | localhost | mysql.sys        |
-## | localhost | root             |
-## +-----------+------------------+
-loose_audit_log_exclude_accounts=root@%,root@localhost
+relay_log_index=relay-bin.indexf
 
 # semi sync, it works
 # loose_rpl-semi-sync-source-enabled = 1

@@ -37,6 +37,5 @@ topology: server
 mysql:
   version: mysql-8.0
 
-
-## @param terminationPolicy
-terminationPolicy: Delete
+extra:
+  terminationPolicy: Delete

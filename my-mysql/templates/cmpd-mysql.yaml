@@ -2,11 +2,15 @@ apiVersion: apps.kubeblocks.io/v1alpha1
 kind: ComponentDefinition
 metadata:
   name: my-mysql
+  labels:
+      {{- include "mysql.labels" . | nindent 4 }}
 spec:
   serviceVersion: 8.0.33
   provider: kubeblocks
   description: mysql component definition for Kubernetes
   serviceKind: mysql
+
+  updateStrategy: BestEffortParallel
 
   configs:
     - name: mysql-config
@@ -17,9 +21,17 @@ spec:
       reRenderResourceTypes:
         - vscale
 
+  scripts:
+    - name: mysql-scripts
+      templateRef: my-mysql-scripts
+      namespace: {{ .Release.Namespace }}
+      volumeName: scripts
+      defaultMode: 0555
+
   services:
     - name: mysql
       serviceName: mysql
+      podService: true
       spec:
         ports:
           - name: mysql
@@ -56,6 +68,21 @@ spec:
     containers:
       - name: mysql
         image: mysql:8.0.33
+        lifecycle:
+          postStart:
+            exec:
+              command:
+                - bash
+                - -c
+                - |
+                  /scripts/init-mysql-instance.sh
+        command:
+          - bash
+          - -c
+          - |
+            SERVICE_ID=$((${KB_POD_NAME##*-} + 1))
+            docker-entrypoint.sh mysqld --server-id $SERVICE_ID
+
         ports:
           - name: mysql
             containerPort: 3306
@@ -64,6 +91,8 @@ spec:
             mountPath: /var/lib/mysql
           - name: mysql-config
             mountPath: /etc/mysql/conf.d
+          - name: scripts
+            mountPath: /scripts
 
         livenessProbe:
           exec:
