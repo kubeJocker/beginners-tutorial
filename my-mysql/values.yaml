@@ -13,6 +13,7 @@ image:
   xtraBackupRepository: perconalab/percona-xtrabackup
   xtraBackupRegistry: docker.io
 
+compDefinitionVersionSuffix: ""
 dataMountPath: /var/lib/mysql
 
 

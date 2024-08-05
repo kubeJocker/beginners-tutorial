@@ -1,0 +1,22 @@
+apiVersion: apps.kubeblocks.io/v1alpha1
+kind: ComponentVersion
+metadata:
+  name: {{ include "mysql.componentDefName" . }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+spec:
+  releases:
+    - name: {{ include "mysql.componentDefName" . }}-8.0.33
+      serviceVersion: "8.0.33"
+      images:
+        mysql: {{ .Values.image.registry | default "docker.io" }}/{{ .Values.image.repository }}:8.0.33
+    - name: {{ include "mysql.componentDefName" . }}-5.7.44
+      serviceVersion: "5.7.44"
+      images:
+        mysql: {{ .Values.image.registry | default "docker.io" }}/{{ .Values.image.repository }}:5.7.44
+  compatibilityRules:
+    - releases:
+        - my-mysql-8.0.30
+        - my-mysql-5.7.44
+      compDefs:
+        - my-mysql

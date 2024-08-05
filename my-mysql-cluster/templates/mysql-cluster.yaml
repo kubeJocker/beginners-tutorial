@@ -7,7 +7,7 @@ spec:
   terminationPolicy: {{ .Values.extra.terminationPolicy }}
   componentSpecs:
     - name: server
-      replicas: {{ .Values.replicas }}
+      replicas: {{ .Values.server.replicas }}
       componentDef: my-mysql
       {{- include "mysql.componentResources" . | indent 6 }}
       {{- include "mysql.componentStorages" . | indent 6 }}
@@ -22,3 +22,9 @@ spec:
               service: orchestrator
               port: {{ .Values.clusterServiceSelector.orchestrator.portName | default "http" }}
       {{- end }}
+
+    - name: proxy
+      replicas: {{ .Values.proxysql.replicas }}
+      componentDef: my-proxysql
+        {{- include "proxysql.componentResources" . | indent 6 }}
+        {{- include "proxysql.componentStorages" . | indent 6 }}

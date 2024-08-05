@@ -1,7 +1,7 @@
 apiVersion: apps.kubeblocks.io/v1alpha1
 kind: BackupPolicyTemplate
 metadata:
-  name: my-mysql-backup-policy-template
+  name: {{ include "mysql.componentDefName" . }}-backup-policy-template
   labels:
       {{- include "mysql.labels" . | nindent 4 }}
   annotations:

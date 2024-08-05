@@ -2,7 +2,7 @@
 apiVersion: apps.kubeblocks.io/v1beta1
 kind: ConfigConstraint
 metadata:
-  name: my-mysql-config-constraints
+  name: {{ include "mysql.componentDefName" . }}-config-constraints
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 spec:

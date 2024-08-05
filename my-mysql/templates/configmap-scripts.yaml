@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-mysql-scripts
+  name: {{ include "mysql.componentDefName" . }}-scripts
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 data:
@@ -11,3 +11,13 @@ data:
     {{- .Files.Get "scripts/mysql-orchestrator-register.sh" | nindent 4 }}
   cluster-info.sql: |-
     {{- .Files.Get "scripts/cluster-info.sql" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "proxysql.componentDefName" . }}-scripts
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+data:
+  proxysql-entry.sh: |-
+    {{- .Files.Get "scripts/proxysql-entry.sh" | nindent 4 -}}

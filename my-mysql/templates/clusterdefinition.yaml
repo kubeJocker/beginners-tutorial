@@ -1,0 +1,29 @@
+apiVersion: apps.kubeblocks.io/v1alpha1
+kind: ClusterDefinition
+metadata:
+  name: {{ include "mysql.componentDefName" . }}
+  labels:
+    {{- include "mysql.labels" . | nindent 4 }}
+spec:
+  topologies:
+    - name: server
+      components:
+        - name: server
+          compDef: {{ include "mysql.componentDefName" . }}
+      default: true
+    - name: server-with-proxy
+      components:
+        - name: server
+          compDef: {{ include "mysql.componentDefName" . }}
+        - name: proxysql
+          compDef: {{ include "proxysql.componentDefName" . }}
+      orders:
+        provision: # The server will start before the proxy is created.
+          - server
+          - proxysql
+        terminate: # The proxy will be shut down (destroyed) before the server.
+          - proxysql
+          - server
+        update: # When there are multiple component update operations, follow the order specified here.
+          - server
+          - proxysql

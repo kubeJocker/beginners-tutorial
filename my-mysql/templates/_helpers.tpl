@@ -1,4 +1,15 @@
 {{/*
+Define mysql component definition name
+*/}}
+{{- define "mysql.componentDefName" -}}
+{{- if eq (len .Values.compDefinitionVersionSuffix) 0 -}}
+my-mysql
+{{- else -}}
+{{- printf "mysql-%s" .Values.compDefinitionVersionSuffix -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
 Common labels
 */}}
 {{- define "mysql.labels" -}}
@@ -31,3 +42,14 @@ Expand the name of the chart.
 {{- define "mysql.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
+
+{{/*
+Define mysql component definition name
+*/}}
+{{- define "proxysql.componentDefName" -}}
+{{- if eq (len .Values.compDefinitionVersionSuffix) 0 -}}
+my-proxysql
+{{- else -}}
+{{- printf "mysql-%s" .Values.compDefinitionVersionSuffix -}}
+{{- end -}}
+{{- end -}}

@@ -34,20 +34,20 @@ Create chart name and version as used by the chart label.
 Define component resources, including cpu, memory
 */}}
 {{- define "mysql.componentResources" }}
-{{- $requestCPU := (float64 .Values.cpu) }}
-{{- $requestMemory := (float64 .Values.memory) }}
-{{- if .Values.requests }}
-{{- if and .Values.requests.cpu (lt (float64 .Values.requests.cpu) $requestCPU) }}
-{{- $requestCPU = .Values.requests.cpu }}
+{{- $requestCPU := (float64 .Values.server.cpu) }}
+{{- $requestMemory := (float64 .Values.server.memory) }}
+{{- if .Values.server.requests }}
+{{- if and .Values.server.requests.cpu (lt (float64 .Values.server.requests.cpu) $requestCPU) }}
+{{- $requestCPU = .Values.server.requests.cpu }}
 {{- end }}
-{{- if and .Values.requests.memory (lt (float64 .Values.requests.memory) $requestMemory) }}
-{{- $requestMemory = .Values.requests.memory }}
+{{- if and .Values.server.requests.memory (lt (float64 .Values.server.requests.memory) $requestMemory) }}
+{{- $requestMemory = .Values.server.requests.memory }}
 {{- end }}
 {{- end }}
 resources:
   limits:
-    cpu: {{ .Values.cpu | quote }}
-    memory: {{ print .Values.memory "Gi" | quote }}
+    cpu: {{ .Values.server.cpu | quote }}
+    memory: {{ print .Values.server.memory "Gi" | quote }}
   requests:
     cpu: {{ $requestCPU | quote }}
     memory: {{ print $requestMemory "Gi" | quote }}
@@ -64,8 +64,50 @@ volumeClaimTemplates:
         - ReadWriteOnce
       resources:
         requests:
-          storage: {{ print .Values.storage "Gi" }}
-      {{- if .Values.storageClassName }}
-      storageClassName: {{ .Values.storageClassName | quote }}
+          storage: {{ print .Values.server.storage "Gi" }}
+      {{- if .Values.server.storageClassName }}
+      storageClassName: {{ .Values.server.storageClassName | quote }}
       {{- end }}
 {{- end }}
+
+
+{{/*
+Define component resources, including cpu, memory
+*/}}
+{{- define "proxysql.componentResources" }}
+{{- $requestCPU := (float64 .Values.proxysql.cpu) }}
+{{- $requestMemory := (float64 .Values.proxysql.memory) }}
+{{- if .Values.proxysql.requests }}
+{{- if and .Values.proxysql.requests.cpu (lt (float64 .Values.proxysql.requests.cpu) $requestCPU) }}
+{{- $requestCPU = .Values.proxysql.requests.cpu }}
+{{- end }}
+{{- if and .Values.proxysql.requests.memory (lt (float64 .Values.proxysql.requests.memory) $requestMemory) }}
+{{- $requestMemory = .Values.proxysql.requests.memory }}
+{{- end }}
+{{- end }}
+resources:
+  limits:
+    cpu: {{ .Values.proxysql.cpu | quote }}
+    memory: {{ print .Values.proxysql.memory "Gi" | quote }}
+  requests:
+    cpu: {{ $requestCPU | quote }}
+    memory: {{ print $requestMemory "Gi" | quote }}
+{{- end }}
+
+{{/*
+Define component storages, including volumeClaimTemplates
+*/}}
+{{- define "proxysql.componentStorages" }}
+volumeClaimTemplates:
+  - name: data # ref clusterDefinition components.containers.volumeMounts.name
+    spec:
+      accessModes:
+        - ReadWriteOnce
+      resources:
+        requests:
+          storage: {{ print .Values.proxysql.storage "Gi" }}
+      {{- if .Values.proxysql.storageClassName }}
+      storageClassName: {{ .Values.proxysql.storageClassName | quote }}
+      {{- end }}
+{{- end }}
+

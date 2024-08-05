@@ -1,7 +1,7 @@
 apiVersion: dataprotection.kubeblocks.io/v1alpha1
 kind: ActionSet
 metadata:
-  name: my-mysql-xtrabackup
+  name: {{ include "mysql.componentDefName" . }}-xtrabackup
   labels:
     {{- include "mysql.labels" . | nindent 4 }}
 spec:
